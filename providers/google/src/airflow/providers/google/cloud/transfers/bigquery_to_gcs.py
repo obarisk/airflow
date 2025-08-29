@@ -215,7 +215,7 @@ class BigQueryToGCSOperator(BaseOperator):
             job_id=self.job_id,
             dag_id=self.dag_id,
             task_id=self.task_id,
-            logical_date=context["logical_date"],
+            logical_date=context.get("logical_date", context.get("dag_run").run_after),
             configuration=configuration,
             force_rerun=self.force_rerun,
         )
