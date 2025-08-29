@@ -2374,7 +2374,7 @@ class BigQueryInsertJobOperator(GoogleCloudBaseOperator, _BigQueryInsertJobOpera
             job_id=self.job_id,
             dag_id=self.dag_id,
             task_id=self.task_id,
-            logical_date=context.get("logical_date", context.get("dag_run").run_after),
+            logical_date=hook.get_exec_date(context),
             configuration=self.configuration,
             force_rerun=self.force_rerun,
         )

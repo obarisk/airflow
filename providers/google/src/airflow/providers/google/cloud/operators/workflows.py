@@ -36,12 +36,16 @@ from airflow.providers.google.cloud.links.workflows import (
 )
 from airflow.providers.google.cloud.operators.cloud_base import GoogleCloudBaseOperator
 from airflow.providers.google.common.hooks.base_google import PROVIDE_PROJECT_ID
+from airflow.providers.google.version_compat import AIRFLOW_V_3_0_PLUS
 
 if TYPE_CHECKING:
     from google.api_core.retry import Retry
     from google.protobuf.field_mask_pb2 import FieldMask
 
-    from airflow.utils.context import Context
+    if AIRFLOW_V_3_0_PLUS:
+        from airflow.sdk.definitions.context import Context
+    else:
+        from airflow.utils.context import Context
 
 from airflow.utils.hashlib_wrapper import md5
 
@@ -114,8 +118,14 @@ class WorkflowsCreateWorkflowOperator(GoogleCloudBaseOperator):
 
         # We are limited by allowed length of workflow_id so
         # we use hash of whole information
-        exec_date = context.get("logical_date", context.get("dag_run").run_after).isoformat()
-        base = f"airflow_{self.dag_id}_{self.task_id}_{exec_date}_{hash_base}"
+        exec_date = context.get("logical_date", None)
+        if AIRFLOW_V_3_0_PLUS and exec_date is None:
+            if dr := context.get("dag_run", None):
+                exec_date = dr.run_after
+        if exec_date is None:
+            exec_date = datetime.datetime.now(tz=datetime.timezone.utc)
+        exec_date_iso = exec_date.isoformat()
+        base = f"airflow_{self.dag_id}_{self.task_id}_{exec_date_iso}_{hash_base}"
         workflow_id = md5(base.encode()).hexdigest()
         return re.sub(r"[:\-+.]", "_", workflow_id)
 

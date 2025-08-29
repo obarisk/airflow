@@ -75,6 +75,7 @@ from airflow.providers.google.common.hooks.base_google import (
     GoogleBaseHook,
     get_field,
 )
+from airflow.providers.google.version_compat import AIRFLOW_V_3_0_PLUS
 from airflow.utils.hashlib_wrapper import md5
 from airflow.utils.helpers import convert_camel_to_snake
 from airflow.utils.log.logging_mixin import LoggingMixin
@@ -85,6 +86,10 @@ if TYPE_CHECKING:
     from google.api_core.page_iterator import HTTPIterator
     from google.api_core.retry import Retry
     from requests import Session
+    if AIRFLOW_V_3_0_PLUS:
+        from airflow.sdk.definitions.context import Context
+    else:
+        from airflow.utils.context import Context
 
 log = logging.getLogger(__name__)
 
@@ -1288,6 +1293,15 @@ class BigQueryHook(GoogleBaseHook, DbApiHook):
         exec_date = logical_date.isoformat()
         job_id = f"airflow_{dag_id}_{task_id}_{exec_date}_{uniqueness_suffix}"
         return re.sub(r"[:\-+.]", "_", job_id)
+
+    def get_exec_date(self, context: Context) -> datetime:
+        exec_date = context.get("logical_date", None)
+        if AIRFLOW_V_3_0_PLUS and exec_date is None:
+            if dr := context.get("dag_run", None):
+                exec_date = dr.run_after
+        if exec_date is None:
+            exec_date = datetime.now()
+        return exec_date
 
     def split_tablename(
         self, table_input: str, default_project_id: str, var_name: str | None = None
