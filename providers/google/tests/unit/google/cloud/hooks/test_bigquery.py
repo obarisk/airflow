@@ -687,15 +687,15 @@ class TestBigQueryHookMethods(_BigQueryBaseTestClass):
             from airflow.models import DagRun
             from airflow.sdk.definitions.context import Context
 
-            ctx = Context(logical_date=pendulum.DateTime(2025, 1, 1))
-            assert self.hook.get_exec_date(ctx) == pendulum.DateTime(2025, 1, 1)
-            ctx = Context(dag_run=DagRun(run_after=pendulum.DateTime(2025, 1, 1)))
-            assert self.hook.get_exec_date(ctx) == pendulum.DateTime(2025, 1, 1)
+            ctx = Context(logical_date=pendulum.datetime(2025, 1, 1))
+            assert self.hook.get_exec_date(ctx) == pendulum.datetime(2025, 1, 1)
+            ctx = Context(dag_run=DagRun(run_after=pendulum.datetime(2025, 1, 1)))
+            assert self.hook.get_exec_date(ctx) == pendulum.datetime(2025, 1, 1)
         else:
             from airflow.utils.context import Context
 
             ctx = Context(logical_date=datetime(2025, 1, 1))
-            assert self.hook.get_exec_date(ctx) == pendulum.DateTime(2025, 1, 1)
+            assert self.hook.get_exec_date(ctx) == pendulum.datetime(2025, 1, 1)
 
     @mock.patch(
         "airflow.providers.google.cloud.hooks.bigquery.BigQueryHook.get_job",
