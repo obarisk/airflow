@@ -117,8 +117,10 @@ class TestWorkflowsCreateWorkflowOperator:
         ctx = Context(logical_date=date)
         expected = md5(f"airflow_{op.dag_id}_test_task_{date.isoformat()}_{hash_base}".encode()).hexdigest()
         assert op._workflow_id(ctx) == re.sub(r"[:\-+.]", "_", expected)
-        ctx = Context(dag_run=DagRun(run_after=date))
-        assert op._workflow_id(ctx) == re.sub(r"[:\-+.]", "_", expected)
+
+        if AIRFLOW_V_3_0_PLUS:
+            ctx = Context(dag_run=DagRun(run_after=date))
+            assert op._workflow_id(ctx) == re.sub(r"[:\-+.]", "_", expected)
 
 
 class TestWorkflowsUpdateWorkflowOperator:

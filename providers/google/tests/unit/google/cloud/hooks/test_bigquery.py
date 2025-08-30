@@ -81,6 +81,9 @@ class _BigQueryBaseTestClass:
             def get_credentials_and_project_id(self):
                 return CREDENTIALS, PROJECT_ID
 
+            def get_exec_date(self, context):
+                return datetime(2016, 1, 1, 0, 0)
+
         self.hook = MockedBigQueryHook()
 
 
@@ -681,9 +684,9 @@ class TestBigQueryHookMethods(_BigQueryBaseTestClass):
         assert job_id == expected_job_id
 
     def test_get_exec_date(self):
-        if AIRFLOW_V_3_0_PLUS:
-            import pendulum
+        import pendulum
 
+        if AIRFLOW_V_3_0_PLUS:
             from airflow.models import DagRun
             from airflow.sdk.definitions.context import Context
 
@@ -1478,6 +1481,9 @@ class TestBigQueryAsyncHookMethods:
         class MockedBigQueryAsyncHook(BigQueryAsyncHook):
             def get_credentials_and_project_id(self):
                 return CREDENTIALS, PROJECT_ID
+
+            def get_exec_date(self, context):
+                return datetime(2016, 1, 1, 0, 0)
 
         self.hook = MockedBigQueryAsyncHook()
 
