@@ -81,9 +81,6 @@ class _BigQueryBaseTestClass:
             def get_credentials_and_project_id(self):
                 return CREDENTIALS, PROJECT_ID
 
-            def get_exec_date(self, context):
-                return datetime(2016, 1, 1, 0, 0)
-
         self.hook = MockedBigQueryHook()
 
 
@@ -1481,9 +1478,6 @@ class TestBigQueryAsyncHookMethods:
         class MockedBigQueryAsyncHook(BigQueryAsyncHook):
             def get_credentials_and_project_id(self):
                 return CREDENTIALS, PROJECT_ID
-
-            def get_exec_date(self, context):
-                return datetime(2016, 1, 1, 0, 0)
 
         self.hook = MockedBigQueryAsyncHook()
 
