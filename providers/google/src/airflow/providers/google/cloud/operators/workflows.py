@@ -20,7 +20,7 @@ import datetime
 import json
 import re
 import uuid
-from collections.abc import Sequence
+from collections.abc import Collection, Sequence
 from typing import TYPE_CHECKING
 
 from google.api_core.exceptions import AlreadyExists
@@ -41,7 +41,6 @@ from airflow.providers.google.version_compat import AIRFLOW_V_3_0_PLUS
 if TYPE_CHECKING:
     from google.api_core.retry import Retry
     from google.protobuf.field_mask_pb2 import FieldMask
-
     if AIRFLOW_V_3_0_PLUS:
         from airflow.sdk.definitions.context import Context
     else:
@@ -73,7 +72,7 @@ class WorkflowsCreateWorkflowOperator(GoogleCloudBaseOperator):
     :param metadata: Additional metadata that is provided to the method.
     """
 
-    template_fields: Sequence[str] = ("location", "workflow", "workflow_id")
+    template_fields: Collection[str] = ("location", "workflow", "workflow_id")
     template_fields_renderers = {"workflow": "json"}
     operator_extra_links = (WorkflowsWorkflowDetailsLink(),)
 
@@ -105,7 +104,7 @@ class WorkflowsCreateWorkflowOperator(GoogleCloudBaseOperator):
         self.impersonation_chain = impersonation_chain
         self.force_rerun = force_rerun
 
-    def _workflow_id(self, context):
+    def _workflow_id(self, context: Context):
         if self.workflow_id and not self.force_rerun:
             # If users provide workflow id then assuring the idempotency
             # is on their side
@@ -118,12 +117,11 @@ class WorkflowsCreateWorkflowOperator(GoogleCloudBaseOperator):
 
         # We are limited by allowed length of workflow_id so
         # we use hash of whole information
-        exec_date = context.get("logical_date", None)
-        if AIRFLOW_V_3_0_PLUS and exec_date is None:
-            if dr := context.get("dag_run", None):
+        date = context.get("logical_date", None)
+        if AIRFLOW_V_3_0_PLUS and date is None:
+            if dr := context.get("dag_run"):
                 exec_date = dr.run_after
-        if exec_date is None:
-            exec_date = datetime.datetime.now(tz=datetime.timezone.utc)
+        exec_date = date if date is not None else datetime.datetime.now(tz=datetime.timezone.utc)
         exec_date_iso = exec_date.isoformat()
         base = f"airflow_{self.dag_id}_{self.task_id}_{exec_date_iso}_{hash_base}"
         workflow_id = md5(base.encode()).hexdigest()

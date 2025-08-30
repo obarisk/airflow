@@ -28,7 +28,7 @@ import time
 import uuid
 from collections.abc import Iterable, Mapping, Sequence
 from copy import deepcopy
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import TYPE_CHECKING, Any, Literal, NoReturn, cast, overload
 
 from aiohttp import ClientSession as ClientSession
@@ -1279,7 +1279,7 @@ class BigQueryHook(GoogleBaseHook, DbApiHook):
             job_api_repr.result(timeout=timeout, retry=retry)
         return job_api_repr
 
-    def generate_job_id(self, job_id, dag_id, task_id, logical_date, configuration, force_rerun=False) -> str:
+    def generate_job_id(self, job_id, dag_id, task_id, date, configuration, force_rerun=False) -> str:
         if force_rerun:
             hash_base = str(uuid.uuid4())
         else:
@@ -1290,18 +1290,16 @@ class BigQueryHook(GoogleBaseHook, DbApiHook):
         if job_id:
             return f"{job_id}_{uniqueness_suffix}"
 
-        exec_date = logical_date.isoformat()
+        exec_date = date.isoformat()
         job_id = f"airflow_{dag_id}_{task_id}_{exec_date}_{uniqueness_suffix}"
         return re.sub(r"[:\-+.]", "_", job_id)
 
     def get_exec_date(self, context: Context) -> datetime:
-        exec_date = context.get("logical_date", None)
-        if AIRFLOW_V_3_0_PLUS and exec_date is None:
-            if dr := context.get("dag_run", None):
-                exec_date = dr.run_after
-        if exec_date is None:
-            exec_date = datetime.now()
-        return exec_date
+        date = context.get("logical_date", None)
+        if AIRFLOW_V_3_0_PLUS and date is None:
+            if dr := context.get("dag_run"):
+                date = dr.run_after
+        return date if date is not None else datetime.now(tz=timezone.utc)
 
     def split_tablename(
         self, table_input: str, default_project_id: str, var_name: str | None = None
