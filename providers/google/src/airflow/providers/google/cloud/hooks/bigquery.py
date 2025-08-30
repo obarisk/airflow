@@ -31,6 +31,7 @@ from copy import deepcopy
 from datetime import datetime, timedelta, timezone
 from typing import TYPE_CHECKING, Any, Literal, NoReturn, cast, overload
 
+import pendulum
 from aiohttp import ClientSession as ClientSession
 from gcloud.aio.bigquery import Job, Table as Table_async
 from google.cloud.bigquery import (
@@ -86,6 +87,7 @@ if TYPE_CHECKING:
     from google.api_core.page_iterator import HTTPIterator
     from google.api_core.retry import Retry
     from requests import Session
+
     if AIRFLOW_V_3_0_PLUS:
         from airflow.sdk.definitions.context import Context
     else:
@@ -1298,7 +1300,8 @@ class BigQueryHook(GoogleBaseHook, DbApiHook):
         date = context.get("logical_date", None)
         if AIRFLOW_V_3_0_PLUS and date is None:
             if dr := context.get("dag_run"):
-                date = dr.run_after
+                if dr.run_after:
+                    date = pendulum.instance(dr.run_after)
         return date if date is not None else datetime.now(tz=timezone.utc)
 
     def split_tablename(

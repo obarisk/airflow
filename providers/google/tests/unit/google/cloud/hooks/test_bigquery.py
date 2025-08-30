@@ -51,6 +51,8 @@ from airflow.providers.google.cloud.hooks.bigquery import (
     _validate_value,
 )
 
+from tests_common.test_utils.version_compat import AIRFLOW_V_3_0_PLUS
+
 pytestmark = pytest.mark.filterwarnings("error::airflow.exceptions.AirflowProviderDeprecationWarning")
 
 PROJECT_ID = "bq-project"
@@ -673,10 +675,27 @@ class TestBigQueryHookMethods(_BigQueryBaseTestClass):
             job_id=None,
             dag_id=test_dag_id,
             task_id="test_job_id",
-            logical_date=datetime(2020, 1, 23),
+            date=datetime(2020, 1, 23),
             configuration=configuration,
         )
         assert job_id == expected_job_id
+
+    def test_get_exec_date(self):
+        if AIRFLOW_V_3_0_PLUS:
+            import pendulum
+
+            from airflow.models import DagRun
+            from airflow.sdk.definitions.context import Context
+
+            ctx = Context(logical_date=pendulum.DateTime(2025, 1, 1))
+            assert self.hook.get_exec_date(ctx) == pendulum.DateTime(2025, 1, 1)
+            ctx = Context(dag_run=DagRun(run_after=pendulum.DateTime(2025, 1, 1)))
+            assert self.hook.get_exec_date(ctx) == pendulum.DateTime(2025, 1, 1)
+        else:
+            from airflow.utils.context import Context
+
+            ctx = Context(logical_date=datetime(2025, 1, 1))
+            assert self.hook.get_exec_date(ctx) == pendulum.DateTime(2025, 1, 1)
 
     @mock.patch(
         "airflow.providers.google.cloud.hooks.bigquery.BigQueryHook.get_job",

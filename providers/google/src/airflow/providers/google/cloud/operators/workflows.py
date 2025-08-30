@@ -23,6 +23,7 @@ import uuid
 from collections.abc import Collection, Sequence
 from typing import TYPE_CHECKING
 
+import pendulum
 from google.api_core.exceptions import AlreadyExists
 from google.api_core.gapic_v1.method import DEFAULT, _MethodDefault
 from google.cloud.workflows.executions_v1beta import Execution
@@ -41,6 +42,7 @@ from airflow.providers.google.version_compat import AIRFLOW_V_3_0_PLUS
 if TYPE_CHECKING:
     from google.api_core.retry import Retry
     from google.protobuf.field_mask_pb2 import FieldMask
+
     if AIRFLOW_V_3_0_PLUS:
         from airflow.sdk.definitions.context import Context
     else:
@@ -120,7 +122,8 @@ class WorkflowsCreateWorkflowOperator(GoogleCloudBaseOperator):
         date = context.get("logical_date", None)
         if AIRFLOW_V_3_0_PLUS and date is None:
             if dr := context.get("dag_run"):
-                exec_date = dr.run_after
+                if dr.run_after:
+                    date = pendulum.instance(dr.run_after)
         exec_date = date if date is not None else datetime.datetime.now(tz=datetime.timezone.utc)
         exec_date_iso = exec_date.isoformat()
         base = f"airflow_{self.dag_id}_{self.task_id}_{exec_date_iso}_{hash_base}"
