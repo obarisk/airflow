@@ -694,7 +694,7 @@ class TestBigQueryHookMethods(_BigQueryBaseTestClass):
         else:
             from airflow.utils.context import Context
 
-            ctx = Context(logical_date=datetime(2025, 1, 1))
+            ctx = Context(logical_date=pendulum.datetime(2025, 1, 1))
             assert self.hook.get_exec_date(ctx) == pendulum.datetime(2025, 1, 1)
 
     @mock.patch(
