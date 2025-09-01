@@ -26,6 +26,7 @@ import logging
 import re
 import time
 import uuid
+import warnings
 from collections.abc import Iterable, Mapping, Sequence
 from copy import deepcopy
 from datetime import datetime, timedelta
@@ -1281,11 +1282,21 @@ class BigQueryHook(GoogleBaseHook, DbApiHook):
             job_api_repr.result(timeout=timeout, retry=retry)
         return job_api_repr
 
-    def generate_job_id(self, job_id, dag_id, task_id, date, configuration, force_rerun=False) -> str:
+    def generate_job_id(
+        self, job_id, dag_id, task_id, logical_date, configuration, date=None, force_rerun=False
+    ) -> str:
         if force_rerun:
             hash_base = str(uuid.uuid4())
         else:
             hash_base = json.dumps(configuration, sort_keys=True)
+
+        if logical_date is not None:
+            warnings.warn(
+                "The 'logical_date' parameter is deprecated. Please use 'date' instead.",
+                AirflowProviderDeprecationWarning,
+                stacklevel=1,
+            )
+            date = logical_date
 
         uniqueness_suffix = md5(hash_base.encode()).hexdigest()
 
