@@ -1745,6 +1745,7 @@ class TestAsyncGCSToBigQueryOperator:
             job_id=None,
             dag_id="adhoc_airflow",
             task_id=TASK_ID,
+            logical_date=None,
             date=hook.return_value.get_exec_date(),
             configuration={},
             force_rerun=True,
