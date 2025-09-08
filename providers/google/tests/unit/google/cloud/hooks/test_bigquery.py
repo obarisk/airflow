@@ -677,7 +677,7 @@ class TestBigQueryHookMethods(_BigQueryBaseTestClass):
             task_id="test_job_id",
             logical_date=None,
             configuration=configuration,
-            date=datetime(2020, 1, 23),
+            run_after=datetime(2020, 1, 23),
         )
         assert job_id == expected_job_id
 

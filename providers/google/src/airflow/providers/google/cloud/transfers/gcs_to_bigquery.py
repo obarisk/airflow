@@ -339,7 +339,7 @@ class GCSToBigQueryOperator(BaseOperator):
             task_id=self.task_id,
             logical_date=None,
             configuration=self.configuration,
-            date=hook.get_exec_date(context),
+            run_after=hook.get_run_after_or_logical_date(context),
             force_rerun=self.force_rerun,
         )
 

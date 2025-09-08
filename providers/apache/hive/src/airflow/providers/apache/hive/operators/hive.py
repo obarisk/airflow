@@ -145,7 +145,11 @@ class HiveOperator(BaseOperator):
             ti = context["ti"]
             logical_date = context.get("logical_date", None)
             if logical_date is None:
-                raise RuntimeError("logical_date is None")
+                raise RuntimeError("""logical_date is None. HiveOperator was designed to work with DAGs
+                that have a logical date. After AIRFLOW 3, the asset triggered DAGs won't have logical_date
+                raise a ticket if using asset to trigger HiveOperator is a use case.
+                Will use run_after instead of logical_date in that case.
+                """)
             hostname = ti.hostname or ""
             self.hook.mapred_job_name = self.mapred_job_name_template.format(
                 dag_id=ti.dag_id,
