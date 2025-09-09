@@ -1297,7 +1297,7 @@ class BigQueryHook(GoogleBaseHook, DbApiHook):
 
         if logical_date is not None:
             warnings.warn(
-                "The 'logical_date' parameter is deprecated. Please use 'date' instead.",
+                "The 'logical_date' parameter is deprecated. Please use 'run_after' instead.",
                 AirflowProviderDeprecationWarning,
                 stacklevel=1,
             )
